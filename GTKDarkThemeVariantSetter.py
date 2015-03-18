@@ -26,7 +26,7 @@ class GTKDarkThemeVariantSetter(sublime_plugin.EventListener):
 		return self.get_output_matches(["xprop", "-root", "_NET_CLIENT_LIST"], "0x[0-9a-f]+")
 
 	def get_pid_from_window_id(self, window_id):
-		return self.get_output_matches(["xprop", "-id", window_id, "_NET_WM_PID"], "\d+")[0]
+		return self.get_output_matches(["xprop", "-id", window_id, "_NET_WM_PID"], "\d+")
 
 	def set_dark_theme(self, window_id):
 		subprocess.call(["xprop", "-id", window_id, "-f", "_GTK_THEME_VARIANT", "8u",
@@ -36,6 +36,9 @@ class GTKDarkThemeVariantSetter(sublime_plugin.EventListener):
 	# because on_new hooks are usually invoked before the window is created
 	def on_activated(self, view):
 		sublime_pids = self.get_sublime_pids()
-		for window_id in self.get_window_ids():
-			if self.get_pid_from_window_id(window_id) in sublime_pids:
-				self.set_dark_theme(window_id)
+		window_ids = self.get_window_ids()
+		for window_id in window_ids:
+			candidates = self.get_pid_from_window_id(window_id)
+			for pid in sublime_pids:
+				if pid in candidates:
+					self.set_dark_theme(window_id)
